@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        var canvas;
+        var canvasContext;
+        var ballX = 50; //sets out where the x axis of the ball starts
+        var ballY = 50; //sets out where the y axis of the ball starts
+        var ballSpeedX = 5; //creates a variable that supports horizontal speed changes
+        var ballSpeedY = 4; //creates a variable that supports vertical speed changes
+        var paddle1Y = 250; //creates a variable for player 1 paddle
+        const PADDLE_HEIGHT = 100; //defines a constant for the set height of the paddles
+
+        //find the mouse position relative to game canvas
+        //this function allows us to have an event that fires everytime the mouse moves. This event will hand in the mouse coordinates it receives
+        function calculateMousePos(evt) {
+            var rect = canvas.getBoundingClientRect(); //this gets us the area of the canvas black rectangle
+            var root = document.documentElement; //this gets us a handle of the html document
+            //this now accounts where in the pages is our canvas element and how far have we scrolled in the browser, and by subtracting these out, we're getting the x and y coordinates of the mouse within the playable space
+            var mouseX = evt.clientX - rect.left - root.scrollLeft;
+            var mouseY = evt.clientY - rect.top - root.scrollTop;
+            return {
+                x: mouseX,
+                y: mouseY
+            };
+        }
+
+
+        window.onload = function() { //to make the function load as soon as the window opens
+            canvas = document.getElementById('gameCanvas'); //get the canvas tag
+            canvasContext = canvas.getContext('2d'); // get the "space" inside the canvas
+            var framesPerSecond = 30; //how many frames per second we want
+            setInterval(function() { //this function has 2 functions inside, and only gets called once when the window loads, triggering everything that is drawn and moved every 1 second/30 fps making it a smooth movement. So, it calls the functions 30 times every second
+                moveEverything();
+                drawEverything();
+            }, 1000 / framesPerSecond);
+
+            //this event gets the movement from the mouse
+            canvas.addEventListener('mousemove',
+                function(evt) {
+                    //gets our calculateMousePosition function and attributes the y value it returns to the up and down movement of our paddle 1
+                    var mousePos = calculateMousePos(evt);
+
+                    //align the paddle's center on the mouse y position
+                    paddle1Y = mousePos.y - (PADDLE_HEIGHT / 2);
+                });
+        }
+
+
+        function moveEverything() {
+            ballX = ballX + ballSpeedX; //increments movement of ball 5 times everytime it's called
+            ballY = ballY + ballSpeedY; //increments movement of ball 5 times everytime it's called
+            if (ballX > canvas.width) { //bounces the ball back once it reaches the width limits of canvas
+                ballSpeedX = -ballSpeedX
+            }
+            if (ballX < 0) { //bounces the ball back once it reaches the left or right side (0) of the canvas
+                ballSpeedX = -ballSpeedX
+            }
+            if (ballY > canvas.height) { //bounces the ball back once it reaches the height limits of canvas
+                ballSpeedY = -ballSpeedY
+            }
+            if (ballY < 0) { //bounces the ball back once it reaches the up or down side (0) of the canvas
+                ballSpeedY = -ballSpeedY
+            }
+        }
+
+        //gives you a function that serves as a template to draw your rectangles
+        function colorRect(leftX, topY, width, height, drawColor) {
+            canvasContext.fillStyle = drawColor; //injects color inside the canvas
+            canvasContext.fillRect(leftX, topY, width, height); //transforms the canvas space into a rectangle and defines x, y (0,0 means x y top corner left) coordinates along with it's overall position relative to the window
+        }
+
+        //a template on which to build all of our circles
+        function colorCircle(centerX, centerY, radius, drawColor) {
+            canvasContext.fillStyle = drawColor;
+            canvasContext.beginPath();
+            canvasContext.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            canvasContext.fill();
+        }
+
+        // uses the coordinates and colors we want to build our shapes
+        function drawEverything() {
+            //this makes the canvas black
+            colorRect(0, 0, canvas.width, canvas.height, "black");
+            //this creates left paddle
+            colorRect(0, paddle1Y, 10, PADDLE_HEIGHT, "white");
+            //this creates a circle
+            colorCircle(ballX, ballY, 10, "white");
+        }
+    </script>
+</body>
+
+</html>
