@@ -19,7 +19,9 @@
         var ballSpeedX = 5; //creates a variable that supports horizontal speed changes
         var ballSpeedY = 4; //creates a variable that supports vertical speed changes
         var paddle1Y = 250; //creates a variable for player 1 paddle
+        var paddle2Y = 250; //creates a variable for computer paddle
         const PADDLE_HEIGHT = 100; //defines a constant for the set height of the paddles
+        const PADDLE_THICKNESS = 10; // creates a constant for paddle thickness
 
         //find the mouse position relative to game canvas
         //this function allows us to have an event that fires everytime the mouse moves. This event will hand in the mouse coordinates it receives
@@ -37,34 +39,51 @@
 
 
         window.onload = function() { //to make the function load as soon as the window opens
-            canvas = document.getElementById('gameCanvas'); //get the canvas tag
-            canvasContext = canvas.getContext('2d'); // get the "space" inside the canvas
-            var framesPerSecond = 30; //how many frames per second we want
-            setInterval(function() { //this function has 2 functions inside, and only gets called once when the window loads, triggering everything that is drawn and moved every 1 second/30 fps making it a smooth movement. So, it calls the functions 30 times every second
-                moveEverything();
-                drawEverything();
-            }, 1000 / framesPerSecond);
+                canvas = document.getElementById('gameCanvas'); //get the canvas tag
+                canvasContext = canvas.getContext('2d'); // get the "space" inside the canvas
+                var framesPerSecond = 30; //how many frames per second we want
+                setInterval(function() { //this function has 2 functions inside, and only gets called once when the window loads, triggering everything that is drawn and moved every 1 second/30 fps making it a smooth movement. So, it calls the functions 30 times every second
+                    moveEverything();
+                    drawEverything();
+                }, 1000 / framesPerSecond);
 
-            //this event gets the movement from the mouse
-            canvas.addEventListener('mousemove',
-                function(evt) {
-                    //gets our calculateMousePosition function and attributes the y value it returns to the up and down movement of our paddle 1
-                    var mousePos = calculateMousePos(evt);
+                //this event gets the movement from the mouse
+                canvas.addEventListener('mousemove',
+                    function(evt) {
+                        //gets our calculateMousePosition function and attributes the y value it returns to the up and down movement of our paddle 1
+                        var mousePos = calculateMousePos(evt);
 
-                    //align the paddle's center on the mouse y position
-                    paddle1Y = mousePos.y - (PADDLE_HEIGHT / 2);
-                });
+                        //align the paddle's center on the mouse y position
+                        paddle1Y = mousePos.y - (PADDLE_HEIGHT / 2);
+                    });
+            }
+            //a function to rest the ball from the center of the canvas
+        function ballReset() {
+            //makes the ball invert direction
+            ballSpeedX = -ballSpeedX
+                //x axis of the ball begins in middle of canvas width
+            ballX = canvas.width / 2;
+            //y axis of the ball begins in middle of canvas height
+            ballY = canvas.height / 2;
         }
-
 
         function moveEverything() {
             ballX = ballX + ballSpeedX; //increments movement of ball 5 times everytime it's called
             ballY = ballY + ballSpeedY; //increments movement of ball 5 times everytime it's called
-            if (ballX > canvas.width) { //bounces the ball back once it reaches the width limits of canvas
-                ballSpeedX = -ballSpeedX
+            if (ballX > canvas.width) { //bounces the ball back once it reaches the right width limits of canvas and is not within the upper and lower height limits of the paddle2
+                if (ballY > paddle2Y && ballY < PADDLE_HEIGHT) {
+                    ballSpeedX = -ballSpeedX;
+                } else {
+                    ballReset();
+                }
             }
-            if (ballX < 0) { //bounces the ball back once it reaches the left or right side (0) of the canvas
-                ballSpeedX = -ballSpeedX
+            if (ballX < 0) {
+                //invokes ballReset function once the ball reaches the left side (0) of the canvas and is not within the upper and lower height limits of the paddle1
+                if (ballY > paddle1Y && ballY < PADDLE_HEIGHT) {
+                    ballSpeedX = -ballSpeedX;
+                } else {
+                    ballReset();
+                }
             }
             if (ballY > canvas.height) { //bounces the ball back once it reaches the height limits of canvas
                 ballSpeedY = -ballSpeedY
@@ -92,8 +111,10 @@
         function drawEverything() {
             //this makes the canvas black
             colorRect(0, 0, canvas.width, canvas.height, "black");
-            //this creates left paddle
-            colorRect(0, paddle1Y, 10, PADDLE_HEIGHT, "white");
+            //this creates left player1 paddle
+            colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
+            //this creates right computer paddle
+            colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
             //this creates a circle
             colorCircle(ballX, ballY, 10, "white");
         }
