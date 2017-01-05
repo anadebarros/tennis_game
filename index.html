@@ -6,19 +6,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <style>
+        body {
+            background-color: green;
+            margin-top: 50px;
+            font-family: "Press Start 2P";
+        }
+
+        canvas {
+            margin: auto;
+            padding: 0;
+            display: block;
+        }
+
+        section {
+            display: block;
+            margin-left: 250px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        div {
+            display: inline-block;
+            background-color: white;
+            width: 100px;
+            height: 30px;
+            padding: 5px;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <section>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </section>
 
+    <canvas id="gameCanvas" width="700" height="500"></canvas>
+
+    <section>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </section>
     <script>
         var canvas;
         var canvasContext;
+        var cpuName = "Nadal"
+        var yourName = prompt("What's your name?");
         var ballX = 50; //sets out where the x axis of the ball starts
         var ballY = 50; //sets out where the y axis of the ball starts
         var ballSpeedX = 5; //creates a variable that supports horizontal speed changes
         var ballSpeedY = 4; //creates a variable that supports vertical speed changes
-        var paddle1Y = 250; //creates a variable for player 1 paddle
+
+        var player1Score = 0; //creates a varible to store the score of player 1
+        var player2Score = 0; //creates a varible to store the score of player 2
+        const WINNING_SCORE = 3; //creates a constant that defines the winning score
+
+        var showingWinScreen = false;
+
+        var paddle1Y = 250; //creates a variable for player 1 paddle.This 250 value is almost ficticious because it is the initial position of the paddle that does not matter during the game
         var paddle2Y = 250; //creates a variable for computer paddle
         const PADDLE_HEIGHT = 100; //defines a constant for the set height of the paddles
         const PADDLE_THICKNESS = 10; // creates a constant for paddle thickness
@@ -39,50 +94,85 @@
 
 
         window.onload = function() { //to make the function load as soon as the window opens
-                canvas = document.getElementById('gameCanvas'); //get the canvas tag
-                canvasContext = canvas.getContext('2d'); // get the "space" inside the canvas
-                var framesPerSecond = 30; //how many frames per second we want
-                setInterval(function() { //this function has 2 functions inside, and only gets called once when the window loads, triggering everything that is drawn and moved every 1 second/30 fps making it a smooth movement. So, it calls the functions 30 times every second
-                    moveEverything();
-                    drawEverything();
-                }, 1000 / framesPerSecond);
+            canvas = document.getElementById('gameCanvas'); //get the canvas tag
+            canvasContext = canvas.getContext('2d'); // get the "space" inside the canvas
+            var framesPerSecond = 30; //how many frames per second we want
+            setInterval(function() { //this function has 2 functions inside, and only gets called once when the window loads, triggering everything that is drawn and moved every 1 second/30 fps making it a smooth movement. So, it calls the functions 30 times every second
+                moveEverything();
+                drawEverything();
+            }, 1000 / framesPerSecond);
 
-                //this event gets the movement from the mouse
-                canvas.addEventListener('mousemove',
-                    function(evt) {
-                        //gets our calculateMousePosition function and attributes the y value it returns to the up and down movement of our paddle 1
-                        var mousePos = calculateMousePos(evt);
+            //this event gets the movement from the mouse
+            canvas.addEventListener('mousemove',
+                function(evt) {
+                    //gets our calculateMousePosition function and attributes the y value it returns to the up and down movement of our paddle 1
+                    var mousePos = calculateMousePos(evt);
 
-                        //align the paddle's center on the mouse y position
-                        paddle1Y = mousePos.y - (PADDLE_HEIGHT / 2);
-                    });
-            }
-            //a function to rest the ball from the center of the canvas
+                    //align the paddle's center on the mouse y position
+                    paddle1Y = mousePos.y - (PADDLE_HEIGHT / 2);
+                });
+        }
+        //a function to reset the ball from the center of the canvas
         function ballReset() {
+            //this puts the counters to 0 once the winning score is reached
+            if (player1Score >= WINNING_SCORE || player2Score >= WINNING_SCORE) {
+                player1Score = 0;
+                player2Score = 0;
+                showingWinScreen = true;
+            }
             //makes the ball invert direction
             ballSpeedX = -ballSpeedX
-                //x axis of the ball begins in middle of canvas width
+            //x axis of the ball begins in middle of canvas width
             ballX = canvas.width / 2;
             //y axis of the ball begins in middle of canvas height
             ballY = canvas.height / 2;
         }
+        //function to make the computer move the right paddle
+        function computerMovement() {
+            //define a way to get the ball in contact with the center of the paddle2
+            var paddle2YCenter = paddle2Y + (PADDLE_HEIGHT / 2);
+            //this subtraction makes the paddle less shaky by not following the ball everywhere (ignoring the ball). It only chases it when it is within 35 pixels below or above the center(70 px span)
+            if (paddle2YCenter < ballY - 35) {
+                paddle2Y += 6;
+            } else if (paddle2YCenter > ballY + 35) {
+                paddle2Y -= 6;
+            }
+        }
 
         function moveEverything() {
-            ballX = ballX + ballSpeedX; //increments movement of ball 5 times everytime it's called
-            ballY = ballY + ballSpeedY; //increments movement of ball 5 times everytime it's called
+            if (showingWinScreen) { //if the winning screen is showing, meaning it is true, meaning the game has restarted, gives return, or a way to bail out of the function (in this case the main function window.onload() ) prematurely and we stop seeing all of what our code is doing
+                return;
+            }
+            computerMovement();
+            ballX += ballSpeedX; //increments movement of ball 5 times everytime it's called
+            ballY += ballSpeedY; //increments movement of ball 5 times everytime it's called
             if (ballX > canvas.width) { //bounces the ball back once it reaches the right width limits of canvas and is not within the upper and lower height limits of the paddle2
-                if (ballY > paddle2Y && ballY < PADDLE_HEIGHT) {
+                if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
                     ballSpeedX = -ballSpeedX;
+                    //create a way to increase ball speed once it is closer to the edges (or Y axis) of the paddle. Here we define where is the edge zone the ball hits.
+                    var deltaY = ballY - (paddle2Y + PADDLE_HEIGHT / 2);
+                    //we multiply by a small value to not make the ball increase a lot of speed;
+                    ballSpeedY = deltaY * 0.35;
                 } else {
+                    //if the ball goes off our right side, means player1 got a point
+                    player1Score++; //we need to have score before reset() so that the reset() function logic itself (described in the function itself) can work
                     ballReset();
+
                 }
             }
             if (ballX < 0) {
                 //invokes ballReset function once the ball reaches the left side (0) of the canvas and is not within the upper and lower height limits of the paddle1
-                if (ballY > paddle1Y && ballY < PADDLE_HEIGHT) {
+                if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) {
                     ballSpeedX = -ballSpeedX;
+                    //create a way to increase ball speed once it is closer to the edges (or Y axis) of the paddle.Here we define where is the edge zone the ball hits.
+                    var deltaY = ballY - (paddle1Y + PADDLE_HEIGHT / 2);
+                    //we multiply by a small value to not make the ball increase a lot of speed;
+                    ballSpeedY = deltaY * 0.35;
                 } else {
+                    //if the ball goes off our left side, means player2 got a point
+                    player2Score++; //we need to have score before reset() so that the reset() function logic itself (described in the function itself) can work
                     ballReset();
+
                 }
             }
             if (ballY > canvas.height) { //bounces the ball back once it reaches the height limits of canvas
@@ -110,13 +200,26 @@
         // uses the coordinates and colors we want to build our shapes
         function drawEverything() {
             //this makes the canvas black
-            colorRect(0, 0, canvas.width, canvas.height, "black");
+            colorRect(0, 0, canvas.width, canvas.height, "tomato");
             //this creates left player1 paddle
+
+            if (showingWinScreen) { //if the winning screen is showing, meaning it is true, meaning the game has restarted, gives return, or a way to bail out of the function (in this case the main function window.onload() ) prematurely and we stop seeing all of what our code is doing. In this case we leave the black canvas and a text message
+                canvasContext.font = "30px 'Press Start 2P'";
+                canvasContext.fillStyle = "white";
+                canvasContext.fillText("click to continue", 100, 100);
+                return;
+            }
             colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
             //this creates right computer paddle
             colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
             //this creates a circle
             colorCircle(ballX, ballY, 10, "white");
+            //this creates a text to display player1 score at position x 100, y 100 within the canvas
+            canvasContext.font = "16px 'Press Start 2P'";
+            canvasContext.fillText(player1Score + " " + yourName, 50, 100);
+            //this creates a text to display player2 score at position x-100 (or 100px before the enf of the right margin of the canvas), y 100 within the canvas
+            canvasContext.font = "16px 'Press Start 2P'";
+            canvasContext.fillText(cpuName + " " + player2Score, canvas.width - 150, 100);
         }
     </script>
 </body>
