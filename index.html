@@ -92,6 +92,14 @@
             };
         }
 
+        //a function that determines what happens upon mouse click once the win screen is on
+        function handleMouseClick(evt) {
+            if (showingWinScreen) {
+                player1Score = 0;
+                player2Score = 0;
+                showingWinScreen = false;
+            }
+        }
 
         window.onload = function() { //to make the function load as soon as the window opens
             canvas = document.getElementById('gameCanvas'); //get the canvas tag
@@ -101,6 +109,9 @@
                 moveEverything();
                 drawEverything();
             }, 1000 / framesPerSecond);
+
+            //a function that allows me to do something upon mouse click
+            canvas.addEventListener("mousedown", handleMouseClick);
 
             //this event gets the movement from the mouse
             canvas.addEventListener('mousemove',
@@ -114,10 +125,8 @@
         }
         //a function to reset the ball from the center of the canvas
         function ballReset() {
-            //this puts the counters to 0 once the winning score is reached
+            //this shows the winning screen once the winning score is reached
             if (player1Score >= WINNING_SCORE || player2Score >= WINNING_SCORE) {
-                player1Score = 0;
-                player2Score = 0;
                 showingWinScreen = true;
             }
             //makes the ball invert direction
@@ -197,18 +206,34 @@
             canvasContext.fill();
         }
 
+        //this function creates the net along our canvas. Creates white dashes in the center of our canvas of 2 px thick every 40px (that's why the for loop).
+        function drawNet() {
+            for (var i = 0; i < canvas.height; i += 40) {
+                colorRect(canvas.width / 2 - 1, i, 2, 20, "white");
+            }
+        }
         // uses the coordinates and colors we want to build our shapes
         function drawEverything() {
             //this makes the canvas tomato
             colorRect(0, 0, canvas.width, canvas.height, "tomato");
             //this creates left player1 paddle
 
-            if (showingWinScreen) { //if the winning screen is showing, meaning it is true, meaning the game has restarted, gives return, or a way to bail out of the function (in this case the main function window.onload() ) prematurely and we stop seeing all of what our code is doing. In this case we leave the black canvas and a text message
-                canvasContext.font = "30px 'Press Start 2P'";
+            if (showingWinScreen) { //if the winning screen is showing, meaning it is true, meaning the game has restarted, gives return, or a way to bail out of the function (in this case the main function window.onload() ) prematurely and we stop seeing all of what our code is doing. In this case we leave the tomato canvas and a text message "click to continue". If player 1 wins, we see a text message, if player 2 wins we see another text message.
                 canvasContext.fillStyle = "white";
-                canvasContext.fillText("click to continue", 100, 100);
+                canvasContext.font = "30px 'Press Start 2P'";
+                if (player1Score >= WINNING_SCORE) {
+                    canvasContext.fillText("You Won!", 200, 200);
+                } else if (player2Score >= WINNING_SCORE) {
+                    canvasContext.fillText("Nadal Won!", 200, 200);
+                }
+                canvasContext.font = "20px 'Press Start 2P'";
+                canvasContext.fillText("click to continue", 150, 300);
                 return;
             }
+
+            drawNet();
+
+            //this creates right computer paddle
             colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
             //this creates right computer paddle
             colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
